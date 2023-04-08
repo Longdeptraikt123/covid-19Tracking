@@ -1,23 +1,53 @@
-import logo from './logo.svg';
 import './App.css';
-
+import React, { useEffect, useState } from "react";
+import CountrySelector from './components/countrySelector';
+import Highlight from './components/highlight';
+import axios from 'axios';
 function App() {
+  const [countries, setCountries] = useState([])
+  const [selectedCountryId, setSelectedCountryId] = useState('Vietnam')
+  const [report, setReport] = useState([])
+  const [loading, setLoading] = useState(false)
+  useEffect(() => {
+    axios.get('https://disease.sh/v3/covid-19/countries').then(res => {
+      setCountries(res.data)
+    })
+
+  }, [])
+
+
+  const handleOnChange = (value) => {
+    setSelectedCountryId(value)
+  }
+
+  useEffect(() => {
+    if (selectedCountryId) {
+      setLoading(true)
+      axios.get(`https://disease.sh/v3/covid-19/countries/${selectedCountryId}`)
+        .then(res => {
+          setReport(res.data)
+          // console.log(res);
+          setLoading(false)
+        })
+    }
+  }, [selectedCountryId])
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className='app'>
+      <CountrySelector
+        countries={countries} handleOnChange={handleOnChange} value={selectedCountryId} />
+      {loading ?
+        <span className='loading'>
+          <span className='loading-inner'></span>
+        </span>
+        :
+        (
+          <>
+            <Highlight
+              selectedCountryId={selectedCountryId}
+              report={report} />
+          </>
+        )}
     </div>
   );
 }
